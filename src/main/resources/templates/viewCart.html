@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <title>Your Cart</title>
+    <link rel="stylesheet" th:href="@{/style.css?v=1}">
+</head>
+
+<body>
+
+    <div class="container">
+
+        <h1>Your Cart Items 🛍️</h1>
+
+        <form th:action="@{/cart/bill}" method="get">
+            <table>
+                <tr>
+                    <th style="text-align: center;">Select</th>
+                    <th>Item Name</th>
+                    <th style="text-align: right;">Unit Price</th>
+                    <th>Quantity</th>
+                    <th style="text-align: right;">Line Total</th>
+                </tr>
+
+                <tr th:each="item : ${cartItems}">
+                    <td style="text-align: center;">
+                        <input type="checkbox" name="selectedItems" th:value="${item.id}" checked>
+                    </td>
+                    <td th:text="${item.name}"></td>
+                    <td class="price-column">
+                        ₹ <span th:text="${#numbers.formatDecimal(item.price, 0, 'COMMA', 2, 'POINT')}"></span>
+                    </td>
+                    <td th:text="${item.quantity}"></td>
+                    <td class="price-column">
+                        ₹ <span
+                            th:text="${#numbers.formatDecimal(item.price * item.quantity, 0, 'COMMA', 2, 'POINT')}"></span>
+                    </td>
+                </tr>
+            </table>
+
+            <br>
+
+            <div style="margin-top: 30px; padding: 15px; border-top: 2px solid #ccc; text-align: right;">
+                <p style="font-size: 1.5em; font-weight: bold; color: #2c3e50;">
+                    Cart Total:
+                    <span class="price-column"
+                        th:text="'₹ ' + ${#numbers.formatDecimal(cartTotal, 0, 'COMMA', 2, 'POINT')}"></span>
+                </p>
+                <p style="font-size: 0.9em; color: #7f8c8d;">(Total of all items. Bill will update based on selection.)
+                </p>
+            </div>
+
+            <div style="margin-top: 30px; text-align: center;">
+                <a th:href="@{/cart/inventory}" style="text-decoration: none;">
+                    <button type="button" class="btn-secondary">Back to Inventory</button>
+                </a>
+                <button type="submit" class="btn-primary">Proceed to Bill 🧾</button>
+            </div>
+        </form>
+
+    </div>
+
+</body>
+
+</html>

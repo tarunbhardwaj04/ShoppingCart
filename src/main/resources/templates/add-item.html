@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <title>Add New Item</title>
+    <link rel="stylesheet" th:href="@{/style.css?v=2}">
+</head>
+
+<body>
+
+    <div class="container">
+
+        <h1>Add Item to Inventory 📦</h1>
+
+        <form th:action="@{/cart/addItem}" th:object="${item}" method="post">
+
+            <div class="form-group">
+                <label for="itemName">Item Name:</label>
+                <input type="text" id="itemName" th:field="*{name}" placeholder="e.g., Apple" required>
+            </div>
+
+            <div class="form-group">
+                <label for="itemPrice">Item Price (₹):</label>
+                <input type="number" step="0.01" id="itemPrice" th:field="*{price}" placeholder="1.99" required>
+            </div>
+
+            <div class="form-group">
+                <label for="itemQuantity">Initial Quantity:</label>
+                <input type="number" id="itemQuantity" th:field="*{quantity}" placeholder="100" required>
+            </div>
+
+            <input type="submit" value="Add Item to Inventory">
+
+            <a th:href="@{/cart/inventory}">
+                <button type="button" class="btn-secondary">Cancel and Back</button>
+            </a>
+        </form>
+
+    </div>
+</body>
+
+</html>

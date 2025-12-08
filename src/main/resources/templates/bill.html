@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <title>Invoice Summary</title>
+    <link rel="stylesheet" th:href="@{/style.css?v=1}">
+    <style>
+        /* Additional styles for Payment Options */
+        .payment-options {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-top: 20px;
+            text-align: left;
+        }
+
+        .payment-option {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .payment-option:hover {
+            border-color: #3498db;
+            background-color: #f8fbfd;
+        }
+
+        .payment-option input[type="radio"] {
+            transform: scale(1.5);
+            margin-right: 15px;
+        }
+
+        .option-details {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .option-title {
+            font-weight: bold;
+            font-size: 1.1em;
+            color: #2c3e50;
+        }
+
+        .option-desc {
+            font-size: 0.9em;
+            color: #7f8c8d;
+        }
+
+        /* Modal Close Button */
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+
+        <h1>Invoice / Bill Summary 🧾</h1>
+
+        <table>
+            <tr>
+                <th>Item Name</th>
+                <th style="text-align: right;">Unit Price</th>
+                <th>Quantity</th>
+                <th style="text-align: right;">Line Subtotal</th>
+            </tr>
+
+            <tr th:each="item : ${cartItems}">
+                <td th:text="${item.name}"></td>
+
+                <td class="price-column">
+                    ₹ <span th:text="${#numbers.formatDecimal(item.price, 0, 'COMMA', 2, 'POINT')}"></span>
+                </td>
+
+                <td th:text="${item.quantity}"></td>
+
+                <td class="price-column">
+                    ₹ <span
+                        th:text="${#numbers.formatDecimal(item.price * item.quantity, 0, 'COMMA', 2, 'POINT')}"></span>
+                </td>
+            </tr>
+        </table>
+
+        <br>
+
+        <div style="margin-top: 30px; padding: 15px; border-top: 2px solid #ccc; text-align: right;">
+
+            <p><strong>Net Subtotal:</strong>
+                <span class="price-column"
+                    th:text="'₹ ' + ${#numbers.formatDecimal(subTotal, 0, 'COMMA', 2, 'POINT')}"></span>
+            </p>
+
+            <p><strong>Tax Amount:</strong>
+                <span class="price-column"
+                    th:text="'₹ ' + ${#numbers.formatDecimal(taxAmount, 0, 'COMMA', 2, 'POINT')}"></span>
+            </p>
+
+            <p
+                style="font-size: 1.5em; font-weight: bold; color: #2c3e50; border-top: 1px dashed #ccc; padding-top: 10px;">
+                Grand Total:
+                <span class="price-column"
+                    th:text="'₹ ' + ${#numbers.formatDecimal(grandTotal, 0, 'COMMA', 2, 'POINT')}"></span>
+            </p>
+        </div>
+
+        <div style="margin-top: 30px; text-align: center;">
+            <form id="checkoutForm" th:action="@{/cart/checkout}" method="post" style="display: inline;">
+                <!-- Pass selected items to the checkout controller -->
+                <div th:each="id : ${selectedItems}">
+                    <input type="hidden" name="selectedItems" th:value="${id}" />
+                </div>
+
+                <input type="hidden" id="selectedPaymentMethod" name="paymentMethod" value="" />
+
+                <button class="btn-primary" type="button" onclick="showPaymentOptions()"
+                    style="margin-right: 10px; font-size: 16px;">
+                    Select Payment Method 💳
+                </button>
+            </form>
+            <a th:href="@{/cart/inventory}">
+                <button class="btn-secondary">Back to Inventory</button>
+            </a>
+        </div>
+    </div>
+
+    <!-- Payment Method Modal -->
+    <div id="paymentMethodModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closePaymentModal()">&times;</span>
+            <h2>Select Payment Method</h2>
+            <div class="payment-options">
+                <label class="payment-option">
+                    <input type="radio" name="paymentOption" value="Card">
+                    <span class="option-details">
+                        <span class="option-title">Credit/Debit Card</span>
+                        <span class="option-desc">Visa, Mastercard, Amex</span>
+                    </span>
+                </label>
+                <label class="payment-option">
+                    <input type="radio" name="paymentOption" value="UPI">
+                    <span class="option-details">
+                        <span class="option-title">UPI</span>
+                        <span class="option-desc">Google Pay, PhonePe, Paytm</span>
+                    </span>
+                </label>
+                <label class="payment-option">
+                    <input type="radio" name="paymentOption" value="NetBanking">
+                    <span class="option-details">
+                        <span class="option-title">Net Banking</span>
+                        <span class="option-desc">All Indian Banks</span>
+                    </span>
+                </label>
+                <label class="payment-option">
+                    <input type="radio" name="paymentOption" value="COD">
+                    <span class="option-details">
+                        <span class="option-title">Cash on Delivery</span>
+                        <span class="option-desc">Pay when you receive</span>
+                    </span>
+                </label>
+            </div>
+            <div style="margin-top: 20px; text-align: right;">
+                <button class="btn-secondary" onclick="closePaymentModal()">Cancel</button>
+                <button class="btn-primary" onclick="confirmPaymentMethod()">Proceed to Pay</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Processing Modal -->
+    <div id="processingModal" class="modal">
+        <div class="modal-content modal-processing">
+            <h2>Processing Payment...</h2>
+            <div class="spinner"></div>
+            <p>Please wait while we secure your transaction.</p>
+        </div>
+    </div>
+
+    <script>
+        function showPaymentOptions() {
+            document.getElementById('paymentMethodModal').style.display = "block";
+        }
+
+        function closePaymentModal() {
+            document.getElementById('paymentMethodModal').style.display = "none";
+        }
+
+        function confirmPaymentMethod() {
+            var options = document.getElementsByName('paymentOption');
+            var selected = false;
+            var selectedValue = "";
+
+            for (var i = 0; i < options.length; i++) {
+                if (options[i].checked) {
+                    selected = true;
+                    selectedValue = options[i].value;
+                    break;
+                }
+            }
+
+            if (!selected) {
+                alert("Please select a payment method.");
+                return;
+            }
+
+            // Set the hidden input value
+            document.getElementById('selectedPaymentMethod').value = selectedValue;
+
+            // Close options modal and start processing
+            closePaymentModal();
+            processPayment();
+        }
+
+        function processPayment() {
+            // Show the processing modal
+            var modal = document.getElementById('processingModal');
+            var content = modal.querySelector('.modal-content');
+            modal.style.display = "block";
+
+            // Wait for 3 seconds then show success
+            setTimeout(function () {
+                content.innerHTML = '<h2>Payment Successful! ✅</h2><p>Your transaction has been completed.</p>';
+
+                // Wait another 2 seconds then redirect/submit
+                setTimeout(function () {
+                    document.getElementById('checkoutForm').submit();
+                }, 2000);
+            }, 3000);
+        }
+
+        // Close modal when clicking outside
+        window.onclick = function (event) {
+            var modal = document.getElementById('paymentMethodModal');
+            if (event.target == modal) {
+                modal.style.display = "none";
+            }
+        }
+    </script>
+
+</body>
+
+</html>

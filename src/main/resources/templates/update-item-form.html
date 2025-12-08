@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <title>Update Item</title>
+    <link rel="stylesheet" th:href="@{/style.css?v=2}">
+</head>
+
+<body>
+
+    <div class="container">
+
+        <h1>Update Item 📝</h1>
+
+        <form th:action="@{/cart/updateItem}" th:object="${item}" method="post">
+
+            <input type="hidden" th:field="*{id}">
+
+            <div class="form-group">
+                <label for="itemName">Item Name:</label>
+                <input type="text" id="itemName" th:field="*{name}" required>
+            </div>
+
+            <div class="form-group">
+                <label for="itemPrice">Item Price (₹):</label>
+                <input type="number" step="0.01" id="itemPrice" th:field="*{price}" required>
+            </div>
+
+            <div class="form-group">
+                <label for="itemQuantity">Quantity:</label>
+                <input type="number" id="itemQuantity" th:field="*{quantity}" required>
+            </div>
+
+            <input type="submit" value="Update Item">
+
+            <a th:href="@{/cart/inventory}">
+                <button type="button" class="btn-secondary">Cancel</button>
+            </a>
+        </form>
+
+    </div>
+</body>
+
+</html>
