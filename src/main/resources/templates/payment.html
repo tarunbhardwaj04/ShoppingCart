@@ -189,13 +189,17 @@
                     <span class="method-icon">🏦</span>
                     <span class="method-name">Net Banking</span>
                 </div>
+                <div class="payment-method-card" onclick="selectMethod('qr')">
+                    <span class="method-icon">📸</span>
+                    <span class="method-name">Scan QR</span>
+                </div>
                 <div class="payment-method-card" onclick="selectMethod('cod')">
                     <span class="method-icon">📦</span>
                     <span class="method-name">COD</span>
                 </div>
             </div>
 
-            <form id="paymentForm" th:action="@{/cart/checkout}" method="post" onsubmit="return processPayment(event)">
+            <form id="paymentForm" th:action="@{/cart/checkout}" method="post">
 
                 <!-- Hidden inputs to pass data through -->
                 <div th:each="id : ${selectedItems}">
@@ -228,12 +232,28 @@
 
                 <!-- UPI Details -->
                 <div id="upi-details" class="payment-details-form">
-                    <h3>Enter UPI ID</h3>
+                    <h3>Enter Unified Payment Interface (UPI) ID</h3>
                     <div class="form-group">
                         <label>UPI ID (VPA)</label>
-                        <input type="text" placeholder="username@bank">
+                        <input type="text" id="upiIdInput" placeholder="username@bank">
                     </div>
-                    <p style="color: #7f8c8d; font-size: 0.9em;">Tap to pay on your UPI app after clicking Pay Now.</p>
+                    <p style="color: #7f8c8d; font-size: 0.9em;">
+                        We will send a payment request to this UPI ID. Please check your app to approve.
+                    </p>
+                </div>
+
+                <!-- QR Code Details -->
+                <div id="qr-details" class="payment-details-form" style="text-align: center;">
+                    <h3>Scan to Pay</h3>
+                    <div
+                        style="background: white; padding: 20px; display: inline-block; border: 1px solid #eee; border-radius: 10px;">
+                        <img id="qrImage" src="" alt="Payment QR Code" width="200" height="200">
+                    </div>
+                    <p style="margin-top: 15px; font-weight: bold; color: #2c3e50;">Scan with any UPI App</p>
+                    <p style="color: #7f8c8d; font-size: 0.9em;">Google Pay, PhonePe, Paytm, BHIM</p>
+                    <!-- Hidden input to store Admin UPI ID from model -->
+                    <input type="hidden" id="adminUpiId" th:value="${adminUpiId}">
+                    <input type="hidden" id="txnAmount" th:value="${grandTotal}">
                 </div>
 
                 <!-- Net Banking Details -->
@@ -260,7 +280,8 @@
                 <div style="text-align: center; margin-top: 20px;">
                     <a th:href="@{/cart/bill}" class="btn-secondary"
                         style="margin-right: 15px; text-decoration: none;">Cancel</a>
-                    <button type="submit" id="payButton" class="btn-primary" disabled>Pay Now</button>
+                    <button type="button" id="payButton" class="btn-primary" disabled onclick="processPayment()">Pay
+                        Now</button>
                 </div>
             </form>
         </div>
@@ -273,7 +294,23 @@
         <p>Please do not refresh the page.</p>
     </div>
 
+    <!-- UPI Request Overlay -->
+    <div id="upiRequestOverlay" class="spinner-overlay">
+        <div
+            style="text-align: center; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); max-width: 400px; width: 90%;">
+            <div class="spinner" id="timerSpinner"></div>
+            <h2 id="upiStatusTitle">Payment Request Sent 📱</h2>
+            <p id="upiStatusMsg">Please open your UPI App and approve the request.</p>
+            <div id="timerDisplay" style="font-size: 2em; font-weight: bold; color: #e74c3c; margin: 15px 0;">01:00
+            </div>
+            <p style="font-size: 0.9em; color: #777;">Transaction ID: <span th:text="${transactionId}"></span></p>
+        </div>
+    </div>
+
     <script>
+        // Initialize QR code when page loads if needed, 
+        // but we trigger it on selection for efficiency.
+
         function selectMethod(method) {
             // Update hidden input
             document.getElementById('selectedMethodInput').value = method;
@@ -286,39 +323,71 @@
             document.querySelectorAll('.payment-details-form').forEach(form => form.classList.remove('active'));
             document.getElementById(method + '-details').classList.add('active');
 
-            // Enable Pay button
-            document.getElementById('payButton').disabled = false;
+            // Specific Logic for UPI & QR
+            if (method === 'upi') {
+                document.getElementById('payButton').textContent = "Send Request";
+                document.getElementById('payButton').disabled = false;
+            } else if (method === 'qr') {
+                document.getElementById('payButton').textContent = "I have Paid";
+                document.getElementById('payButton').disabled = false;
+
+                // Generate QR Code
+                var upiId = document.getElementById('adminUpiId').value;
+                var amount = document.getElementById('txnAmount').value;
+                var name = "Shopping Cart";
+                // Standard UPI Link format: upi://pay?pa=...&pn=...&am=...&cu=INR
+                var upiString = `upi://pay?pa=${upiId}&pn=${name}&am=${amount}&cu=INR`;
+                var qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(upiString)}`;
+                document.getElementById('qrImage').src = qrUrl;
+
+            } else {
+                document.getElementById('payButton').textContent = "Pay Now";
+                document.getElementById('payButton').disabled = false;
+            }
         }
 
-        async function processPayment(event) {
-            event.preventDefault(); // Stop default submission
-
+        async function processPayment() {
             var method = document.getElementById('selectedMethodInput').value;
+
+            // --- UPI HANDLING (Request & Timer) ---
+            if (method === 'upi') {
+                var upiId = document.getElementById('upiIdInput').value;
+                if (!upiId || !upiId.includes('@')) {
+                    alert("Please enter a valid UPI ID (e.g. user@bank)");
+                    return;
+                }
+
+                startUpiTimer();
+                return;
+            }
+
+            // --- QR HANDLING (Simulated Check) ---
+            if (method === 'qr') {
+                // Reuse the UPI Timer logic as a "Checking Payment Status..."
+                document.getElementById('upiStatusTitle').innerText = "Verifying Payment... 🔄";
+                document.getElementById('upiStatusMsg').innerText = "Checking with bank...";
+                startUpiTimer();
+                return;
+            }
+
+            // --- MOCK API HANDLING (Card, NetBanking) ---
             var overlay = document.getElementById('processingOverlay');
             var overlayText = overlay.querySelector('h2');
 
-            // Collect Data
             var requestData = {
                 paymentMethod: method,
-                amount: 1000.00 // In real app, fetch from hidden input or server session
+                amount: 1000.00
             };
 
             if (method === 'card') {
                 var cardForm = document.getElementById('card-details');
                 requestData.cardNumber = cardForm.querySelector('input[placeholder*="0000"]').value.replace(/\s/g, '');
-                requestData.cardHolderName = cardForm.querySelector('input[placeholder*="Name"]').value;
-                requestData.expiryDate = cardForm.querySelector('input[placeholder*="MM/YY"]').value;
-                requestData.cvv = cardForm.querySelector('input[placeholder*="123"]').value;
-            } else if (method === 'upi') {
-                requestData.upiId = document.getElementById('upi-details').querySelector('input').value;
             }
 
-            // Show Processing Overlay
             overlay.style.display = 'flex';
             overlayText.innerText = 'Contacting Bank...';
 
             try {
-                // Call Mock API
                 const response = await fetch('/api/pay', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -330,7 +399,6 @@
                 if (result.success) {
                     overlayText.innerText = 'Payment Successful! ✅';
                     setTimeout(() => {
-                        // Submit to backend to finalize order
                         document.getElementById('paymentForm').submit();
                     }, 1000);
                 } else {
@@ -343,8 +411,57 @@
                 overlay.style.display = 'none';
                 alert("Transaction Error. Please try again.");
             }
+        }
 
-            return false;
+        function startUpiTimer() {
+            var overlay = document.getElementById('upiRequestOverlay');
+            var timerDisplay = document.getElementById('timerDisplay');
+            var title = document.getElementById('upiStatusTitle');
+            var msg = document.getElementById('upiStatusMsg');
+            var spinner = document.getElementById('timerSpinner');
+
+            overlay.style.display = 'flex';
+
+            var timeLeft = 60; // 60 seconds
+
+            // Simulate random success time between 5s and 15s
+            var successTime = 60 - (Math.floor(Math.random() * 10) + 5);
+
+            var timerInterval = setInterval(function () {
+                timeLeft--;
+
+                // Format time 00:XX
+                var seconds = timeLeft < 10 ? "0" + timeLeft : timeLeft;
+                timerDisplay.textContent = "00:" + seconds;
+
+                // Simulate Success
+                if (timeLeft === successTime) {
+                    clearInterval(timerInterval);
+                    timerDisplay.style.color = "#27ae60";
+                    timerDisplay.textContent = "APPROVED";
+                    title.textContent = "Payment Successful! ✅";
+                    msg.textContent = "Transaction Completed Successfully.";
+                    spinner.style.borderTopColor = "#27ae60"; // Green spinner
+                    spinner.style.animation = "none";
+                    spinner.style.border = "none";
+                    spinner.innerHTML = "<span style='font-size:50px;'>🎉</span>";
+
+                    // Wait 2 seconds then submit
+                    setTimeout(() => {
+                        document.getElementById('paymentForm').submit();
+                    }, 2000);
+                    return;
+                }
+
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    title.textContent = "Request Expired ❌";
+                    msg.textContent = "You did not approve the payment in time.";
+                    setTimeout(() => {
+                        overlay.style.display = 'none';
+                    }, 2000);
+                }
+            }, 1000);
         }
     </script>
 </body>

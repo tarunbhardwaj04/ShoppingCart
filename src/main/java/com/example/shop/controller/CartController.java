@@ -89,6 +89,13 @@ public class CartController {
 
     // --- 4. CART & BILL VIEWS/ACTIONS ---
 
+    @GetMapping("/removeFromCart/{id}")
+    public String removeFromCart(@PathVariable int id, RedirectAttributes redirectAttributes) {
+        service.removeCartItem(id);
+        redirectAttributes.addFlashAttribute("success", "Item removed from cart and stock restored.");
+        return "redirect:/cart/viewCart";
+    }
+
     @GetMapping("/viewCart")
     public String viewCart(Model model) {
         model.addAttribute("cartItems", service.getCartItems());
@@ -115,6 +122,9 @@ public class CartController {
         return "bill";
     }
 
+    @org.springframework.beans.factory.annotation.Value("${admin.payment.upi-id}")
+    private String adminUpiId;
+
     @PostMapping("/payment")
     public String viewPaymentPage(@RequestParam(required = false) List<Integer> selectedItems, Model model) {
         if (selectedItems == null || selectedItems.isEmpty()) {
@@ -130,6 +140,7 @@ public class CartController {
 
         model.addAttribute("selectedItems", selectedItems);
         model.addAttribute("grandTotal", grandTotal);
+        model.addAttribute("adminUpiId", adminUpiId);
         // Generate a random transaction ID for display
         model.addAttribute("transactionId", "TXN" + System.currentTimeMillis());
 

@@ -108,6 +108,24 @@ public class CartService {
         clearCart(null);
     }
 
+    public void removeCartItem(int cartItemId) {
+        CartItem cartItem = cartRepo.findById(cartItemId).orElse(null);
+        if (cartItem == null) {
+            return;
+        }
+
+        // Restore Inventory
+        if (cartItem.getInventoryItemId() != null) {
+            InventoryItem inventoryItem = inventoryRepo.findById(cartItem.getInventoryItemId()).orElse(null);
+            if (inventoryItem != null) {
+                inventoryItem.setQuantity(inventoryItem.getQuantity() + cartItem.getQuantity());
+                inventoryRepo.save(inventoryItem);
+            }
+        }
+
+        cartRepo.delete(cartItem);
+    }
+
     // --- CHECKOUT ---
 
     public List<CartItem> getCartItems(List<Integer> ids) {
