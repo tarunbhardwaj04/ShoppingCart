@@ -36,7 +36,7 @@ public class CartController {
 
     @GetMapping("/inventory")
     public String viewInventory(@RequestParam(value = "pageNo", defaultValue = "1") int pageNo, Model model) {
-        int pageSize = 6;
+        int pageSize = 10;
         Page<InventoryItem> page = service.getInventoryPaginated(pageNo, pageSize);
         List<InventoryItem> listInventory = page.getContent();
 
@@ -48,7 +48,7 @@ public class CartController {
         return "inventory";
     }
 
-    @GetMapping({ "/updatePriceForm/{id}", "/updateNameForm/{id}", "/updateQuantityForm/{id}" })
+    @GetMapping({ "/updatePriceForm/{id}", "/updateNameForm/{id}", "/updateQuantityForm/{id}", "/updateForm/{id}" })
     public String showUpdateForm(@PathVariable int id, Model model) {
         model.addAttribute("item", service.getInventoryItem(id));
         return "update-item-form";
@@ -113,6 +113,27 @@ public class CartController {
         model.addAttribute("currentDate", new Date());
 
         return "bill";
+    }
+
+    @PostMapping("/payment")
+    public String viewPaymentPage(@RequestParam(required = false) List<Integer> selectedItems, Model model) {
+        if (selectedItems == null || selectedItems.isEmpty()) {
+            return "redirect:/cart/bill";
+        }
+
+        List<CartItem> items = service.getCartItems(selectedItems);
+        double subTotal = service.calculateCartTotal(items);
+
+        final double taxRate = 0.07;
+        double taxAmount = subTotal * taxRate;
+        double grandTotal = subTotal + taxAmount;
+
+        model.addAttribute("selectedItems", selectedItems);
+        model.addAttribute("grandTotal", grandTotal);
+        // Generate a random transaction ID for display
+        model.addAttribute("transactionId", "TXN" + System.currentTimeMillis());
+
+        return "payment";
     }
 
     @PostMapping("/checkout")

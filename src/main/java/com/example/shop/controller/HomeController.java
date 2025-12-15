@@ -10,6 +10,6 @@ public class HomeController {
     @GetMapping("/")
     public String home() {
         // Automatically jumps to the inventory page
-        return "redirect:/cart/inventory";
+        return "redirect:/cart/addItem";
     }
 }

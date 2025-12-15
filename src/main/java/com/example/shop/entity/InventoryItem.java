@@ -16,13 +16,16 @@ public class InventoryItem {
 
     private int quantity;
 
+    private String imageUrl;
+
     public InventoryItem() {
     }
 
-    public InventoryItem(String name, double price, int quantity) {
+    public InventoryItem(String name, double price, int quantity, String imageUrl) {
         this.name = name;
         this.price = price;
         this.quantity = quantity;
+        this.imageUrl = imageUrl;
     }
 
     // Getters and setters
@@ -57,5 +60,13 @@ public class InventoryItem {
 
     public void setQuantity(int quantity) {
         this.quantity = quantity;
+    }
+
+    public String getImageUrl() {
+        return imageUrl;
+    }
+
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
     }
 }

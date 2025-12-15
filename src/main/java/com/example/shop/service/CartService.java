@@ -59,6 +59,11 @@ public class CartService {
         if (inventoryItem == null)
             return;
 
+        // Check if stock is available for the NEW quantity
+        if (quantity > inventoryItem.getQuantity()) {
+            throw new IllegalArgumentException("Insufficient stock! Available: " + inventoryItem.getQuantity());
+        }
+
         // Check if item already exists in cart
         List<CartItem> cartItems = cartRepo.findAll();
         CartItem existingItem = null;
@@ -71,15 +76,9 @@ public class CartService {
 
         if (existingItem != null) {
             int totalQuantity = existingItem.getQuantity() + quantity;
-            if (totalQuantity > inventoryItem.getQuantity()) {
-                throw new IllegalArgumentException("Insufficient stock! Available: " + inventoryItem.getQuantity());
-            }
             existingItem.setQuantity(totalQuantity);
             cartRepo.save(existingItem);
         } else {
-            if (quantity > inventoryItem.getQuantity()) {
-                throw new IllegalArgumentException("Insufficient stock! Available: " + inventoryItem.getQuantity());
-            }
             CartItem newItem = new CartItem(
                     inventoryItem.getName(),
                     inventoryItem.getPrice(),
@@ -87,6 +86,10 @@ public class CartService {
                     inventoryId);
             cartRepo.save(newItem);
         }
+
+        // Deduct from inventory immediately
+        inventoryItem.setQuantity(inventoryItem.getQuantity() - quantity);
+        inventoryRepo.save(inventoryItem);
     }
 
     public List<CartItem> getCartItems() {
@@ -133,20 +136,8 @@ public class CartService {
 
     @Transactional
     public void finalizeTransaction(List<Integer> ids) {
-        List<CartItem> cartItems = getCartItems(ids);
-        for (CartItem cartItem : cartItems) {
-            Integer inventoryId = cartItem.getInventoryItemId();
-            if (inventoryId != null) {
-                InventoryItem inventoryItem = inventoryRepo.findById(inventoryId).orElse(null);
-                if (inventoryItem != null) {
-                    int newQuantity = inventoryItem.getQuantity() - cartItem.getQuantity();
-                    if (newQuantity < 0)
-                        newQuantity = 0; // Prevent negative stock
-                    inventoryItem.setQuantity(newQuantity);
-                    inventoryRepo.save(inventoryItem);
-                }
-            }
-        }
+        // Stock is already deducted at 'addToCart' time.
+        // We just log here.
         System.out.println("LOG: Transaction finalized for selected items.");
     }
 

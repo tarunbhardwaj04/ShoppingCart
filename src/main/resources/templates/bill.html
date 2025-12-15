@@ -120,136 +120,22 @@
         </div>
 
         <div style="margin-top: 30px; text-align: center;">
-            <form id="checkoutForm" th:action="@{/cart/checkout}" method="post" style="display: inline;">
-                <!-- Pass selected items to the checkout controller -->
-                <div th:each="id : ${selectedItems}">
-                    <input type="hidden" name="selectedItems" th:value="${id}" />
-                </div>
+            <div style="margin-top: 30px; text-align: center;">
+                <form id="checkoutForm" th:action="@{/cart/payment}" method="post" style="display: inline;">
+                    <!-- Pass selected items to the checkout controller -->
+                    <div th:each="id : ${selectedItems}">
+                        <input type="hidden" name="selectedItems" th:value="${id}" />
+                    </div>
 
-                <input type="hidden" id="selectedPaymentMethod" name="paymentMethod" value="" />
-
-                <button class="btn-primary" type="button" onclick="showPaymentOptions()"
-                    style="margin-right: 10px; font-size: 16px;">
-                    Select Payment Method 💳
-                </button>
-            </form>
-            <a th:href="@{/cart/inventory}">
-                <button class="btn-secondary">Back to Inventory</button>
-            </a>
-        </div>
-    </div>
-
-    <!-- Payment Method Modal -->
-    <div id="paymentMethodModal" class="modal">
-        <div class="modal-content">
-            <span class="close" onclick="closePaymentModal()">&times;</span>
-            <h2>Select Payment Method</h2>
-            <div class="payment-options">
-                <label class="payment-option">
-                    <input type="radio" name="paymentOption" value="Card">
-                    <span class="option-details">
-                        <span class="option-title">Credit/Debit Card</span>
-                        <span class="option-desc">Visa, Mastercard, Amex</span>
-                    </span>
-                </label>
-                <label class="payment-option">
-                    <input type="radio" name="paymentOption" value="UPI">
-                    <span class="option-details">
-                        <span class="option-title">UPI</span>
-                        <span class="option-desc">Google Pay, PhonePe, Paytm</span>
-                    </span>
-                </label>
-                <label class="payment-option">
-                    <input type="radio" name="paymentOption" value="NetBanking">
-                    <span class="option-details">
-                        <span class="option-title">Net Banking</span>
-                        <span class="option-desc">All Indian Banks</span>
-                    </span>
-                </label>
-                <label class="payment-option">
-                    <input type="radio" name="paymentOption" value="COD">
-                    <span class="option-details">
-                        <span class="option-title">Cash on Delivery</span>
-                        <span class="option-desc">Pay when you receive</span>
-                    </span>
-                </label>
-            </div>
-            <div style="margin-top: 20px; text-align: right;">
-                <button class="btn-secondary" onclick="closePaymentModal()">Cancel</button>
-                <button class="btn-primary" onclick="confirmPaymentMethod()">Proceed to Pay</button>
+                    <button class="btn-primary" type="submit" style="margin-right: 10px; font-size: 16px;">
+                        Proceed to Payment 💳
+                    </button>
+                </form>
+                <a th:href="@{/cart/inventory}">
+                    <button class="btn-secondary">Back to Inventory</button>
+                </a>
             </div>
         </div>
-    </div>
-
-    <!-- Processing Modal -->
-    <div id="processingModal" class="modal">
-        <div class="modal-content modal-processing">
-            <h2>Processing Payment...</h2>
-            <div class="spinner"></div>
-            <p>Please wait while we secure your transaction.</p>
-        </div>
-    </div>
-
-    <script>
-        function showPaymentOptions() {
-            document.getElementById('paymentMethodModal').style.display = "block";
-        }
-
-        function closePaymentModal() {
-            document.getElementById('paymentMethodModal').style.display = "none";
-        }
-
-        function confirmPaymentMethod() {
-            var options = document.getElementsByName('paymentOption');
-            var selected = false;
-            var selectedValue = "";
-
-            for (var i = 0; i < options.length; i++) {
-                if (options[i].checked) {
-                    selected = true;
-                    selectedValue = options[i].value;
-                    break;
-                }
-            }
-
-            if (!selected) {
-                alert("Please select a payment method.");
-                return;
-            }
-
-            // Set the hidden input value
-            document.getElementById('selectedPaymentMethod').value = selectedValue;
-
-            // Close options modal and start processing
-            closePaymentModal();
-            processPayment();
-        }
-
-        function processPayment() {
-            // Show the processing modal
-            var modal = document.getElementById('processingModal');
-            var content = modal.querySelector('.modal-content');
-            modal.style.display = "block";
-
-            // Wait for 3 seconds then show success
-            setTimeout(function () {
-                content.innerHTML = '<h2>Payment Successful! ✅</h2><p>Your transaction has been completed.</p>';
-
-                // Wait another 2 seconds then redirect/submit
-                setTimeout(function () {
-                    document.getElementById('checkoutForm').submit();
-                }, 2000);
-            }, 3000);
-        }
-
-        // Close modal when clicking outside
-        window.onclick = function (event) {
-            var modal = document.getElementById('paymentMethodModal');
-            if (event.target == modal) {
-                modal.style.display = "none";
-            }
-        }
-    </script>
 
 </body>
 

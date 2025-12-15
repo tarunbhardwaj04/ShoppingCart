@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <title>Admin Login</title>
+    <link rel="stylesheet" th:href="@{/style.css?v=2}">
+</head>
+
+<body style="display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0;">
+
+    <!-- Glass Login Card: Increased transparency for 'Glass Effect' -->
+    <div class="modal-content"
+        style="text-align: left; padding: 50px; animation: none; background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.1); box-shadow: 0 0 40px rgba(0,0,0,0.5);">
+
+        <div style="text-align: center; margin-bottom: 40px;">
+            <!-- Mini SVG Header -->
+            <svg width="280" height="50" viewBox="0 0 280 50" xmlns="http://www.w3.org/2000/svg">
+                <style>
+                    .login-text {
+                        font-family: 'Unbounded', sans-serif;
+                        font-size: 24px;
+                        font-weight: 700;
+                        text-transform: uppercase;
+                        fill: white;
+                        stroke: #00f2ff;
+                        stroke-width: 1px;
+                        text-shadow: 0 0 10px rgba(0, 242, 255, 0.5);
+                    }
+                </style>
+                <text x="50%" y="35" text-anchor="middle" class="login-text">ADMIN ACCESS</text>
+            </svg>
+        </div>
+
+        <div th:if="${error}" class="error-message"
+            style="color: #ff2a6d; margin-bottom: 25px; text-align: center; font-family: 'Inter'; background: rgba(255, 42, 109, 0.1); padding: 10px; border-radius: 8px;">
+            <span th:text="${error}"></span>
+        </div>
+        <div th:if="${param.logout}"
+            style="color: #05ffa1; margin-bottom: 25px; text-align: center; font-family: 'Inter'; background: rgba(5, 255, 161, 0.1); padding: 10px; border-radius: 8px;">
+            <span>Logged out successfully.</span>
+        </div>
+
+        <form th:action="@{/login}" method="post">
+            <div style="margin-bottom: 25px;">
+                <label for="username"
+                    style="display: block; color: rgba(255,255,255,0.8); font-family: 'Unbounded'; font-size: 14px; letter-spacing: 1px; margin-bottom: 10px;">USER
+                    ID</label>
+                <input type="text" id="username" name="username" class="modal-input" placeholder="Enter ID" required
+                    style="width: 100%; padding: 15px; font-size: 16px;">
+            </div>
+            <div style="margin-bottom: 35px;">
+                <label for="password"
+                    style="display: block; color: rgba(255,255,255,0.8); font-family: 'Unbounded'; font-size: 14px; letter-spacing: 1px; margin-bottom: 10px;">PASSWORD</label>
+                <input type="password" id="password" name="password" class="modal-input" placeholder="Enter Password"
+                    required style="width: 100%; padding: 15px; font-size: 16px;">
+            </div>
+            <button type="submit" class="btn-primary"
+                style="width: 100%; padding: 18px; font-size: 16px; font-weight: bold; letter-spacing: 2px;">AUTHENTICATE</button>
+        </form>
+
+        <div style="margin-top: 30px; text-align: center;">
+            <a th:href="@{/cart/inventory}"
+                style="text-decoration: none; color: rgba(255,255,255,0.4); font-size: 12px; font-family: 'Inter'; transition: 0.3s;"
+                onmouseover="this.style.color='white'" onmouseout="this.style.color='rgba(255,255,255,0.4)'">RETURN TO
+                INVENTORY</a>
+        </div>
+    </div>
+
+</body>
+
+</html>

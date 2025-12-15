@@ -9,101 +9,192 @@
 
     <div class="container">
 
-        <h1>Alpha Grade Super Market 🛒</h1>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+            <div>
+                <svg width="400" height="60" viewBox="0 0 400 60" xmlns="http://www.w3.org/2000/svg">
+                    <style>
+                        .text-effect {
+                            font-family: 'Unbounded', sans-serif;
+                            font-size: 32px;
+                            font-weight: 700;
+                            text-transform: uppercase;
+                            fill: none;
+                            stroke: #00f2ff;
+                            stroke-width: 2;
+                            stroke-dasharray: 500;
+                            stroke-dashoffset: 500;
+                            animation: draw 3s forwards infinite alternate, glow 2s ease-in-out infinite alternate;
+                        }
 
+                        @keyframes draw {
+                            to {
+                                stroke-dashoffset: 0;
+                            }
+                        }
 
+                        @keyframes glow {
+                            from {
+                                filter: drop-shadow(0 0 2px #00f2ff);
+                            }
 
-        <div style="margin-bottom: 25px;">
+                            to {
+                                filter: drop-shadow(0 0 10px #00f2ff);
+                            }
+                        }
+                    </style>
+                    <text x="0" y="40" class="text-effect">LOKI SHREDS</text>
+                </svg>
+                <p
+                    style="color: rgba(255,255,255,0.5); margin: 5px 0 0 0; font-family: 'Inter'; font-size: 0.9rem; letter-spacing: 1px;">
+                    PREMIUM ELECTRONICS</p>
+            </div>
+
+            <div style="font-size: 14px;">
+                <span th:if="${session.isLoggedIn}">
+                    <span
+                        style="color: #05ffa1; font-weight: bold; margin-right: 15px; font-family: 'Unbounded'; letter-spacing: 1px;">
+                        WELCOME, <span th:text="${session.username}">ADMIN</span>
+                    </span>
+                    <a th:href="@{/logout}" class="btn-delete"
+                        style="text-decoration: none; padding: 8px 15px; font-size: 13px; border-radius: 20px;">LOGOUT</a>
+                </span>
+                <span th:unless="${session.isLoggedIn}">
+                    <a th:href="@{/login}" class="btn-primary"
+                        style="text-decoration: none; padding: 8px 15px; font-size: 13px; background: linear-gradient(135deg, #7f8c8d, #95a5a6); border-radius: 20px;">Admin
+                        Login</a>
+                </span>
+            </div>
+        </div>
+
+        <div style="margin-bottom: 25px;" th:if="${session.isLoggedIn}">
             <a th:href="@{/cart/add}">
-                <button class="btn-primary">Add New Item ➕</button>
+                <button class="btn-primary" style="border-radius: 30px;">+ Add New Product</button>
             </a>
         </div>
 
-        <table>
-            <tr>
-                <th>ID</th>
-                <th>Name</th>
-                <th style="text-align: right;">Price</th>
-                <th>Qty</th>
-                <th>Actions</th>
-            </tr>
+        <!-- Admin View: Data Table -->
+        <div th:if="${session.isLoggedIn}">
+            <table>
+                <thead>
+                    <tr>
+                        <th style="text-align: center;">ID</th>
+                        <th style="text-align: left;">NAME</th>
+                        <th style="text-align: right;">PRICE</th>
+                        <th style="text-align: center;">QTY</th>
+                        <th style="text-align: center;">IMAGE</th>
+                        <th style="text-align: center;">ACTIONS</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="item : ${inventory}">
+                        <td th:text="${item.id}" style="text-align: center;">1</td>
+                        <td th:text="${item.name}" style="text-align: left; font-weight: bold; color: white;">Product
+                            Name</td>
+                        <td style="text-align: right; color: #00f2ff; font-family: 'Unbounded';">
+                            ₹ <span th:text="${#numbers.formatDecimal(item.price, 0, 'COMMA', 2, 'POINT')}">0.00</span>
+                        </td>
+                        <td th:text="${item.quantity}" style="text-align: center;">10</td>
+                        <td style="text-align: center;">
+                            <img th:if="${item.imageUrl != null and item.imageUrl != ''}" th:src="${item.imageUrl}"
+                                alt="Item"
+                                style="width: 50px; height: 50px; object-fit: cover; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1);">
+                            <span th:unless="${item.imageUrl != null and item.imageUrl != ''}"
+                                style="color: rgba(255,255,255,0.2); font-size: 12px;">No Image</span>
+                        </td>
+                        <td class="action-cell" style="text-align: center;">
+                            <div style="display: flex; gap: 5px; justify-content: center;">
+                                <a th:href="@{'/cart/updateForm/' + ${item.id}}">
+                                    <button class="btn-update" style="padding: 5px 10px; font-size: 12px;">Update
+                                        ✏️</button>
+                                </a>
+                                <button class="btn-delete" th:onclick="'openDeleteModal(' + ${item.id} + ')'"
+                                    style="padding: 5px 10px; font-size: 12px; background-color: #e74c3c; color: white; border: none; border-radius: 4px; cursor: pointer;">Delete
+                                    🗑️</button>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
 
-            <tr th:each="item, stat : ${inventory}">
-                <td th:text="${stat.count}"></td>
-                <td th:text="${item.name}"></td>
-                <td class="price-column">
-                    ₹ <span th:text="${#numbers.formatDecimal(item.price, 0, 'COMMA', 2, 'POINT')}"></span>
-                </td>
-                <td th:class="${item.quantity < 5} ? 'qty-low' : 'qty-normal'" th:text="${item.quantity}">
-                </td>
+        <!-- Guest View: Product Grid (No Admin Actions) -->
+        <div class="product-grid" th:unless="${session.isLoggedIn}">
+            <div class="product-card" th:each="item : ${inventory}">
+                <div class="product-image-container">
+                    <img th:src="${item.imageUrl != null ? item.imageUrl : 'https://placehold.co/400x400?text=No+Image'}"
+                        alt="Product Image" class="product-image"
+                        onerror="this.src='https://placehold.co/400x400?text=Error'">
+                </div>
 
-                <td class="action-cell">
-                    <button class="btn-delete" th:onclick="'openDeleteModal(' + ${item.id} + ')'">Delete</button>
-
-                    <button class="btn-add-item-in-cart" th:onclick="'openQuantityModal(' + ${item.id} + ')'">Add Item
-                        in Cart</button>
-
-                    <div class="dropdown">
-                        <a href="javascript:void(0)">
-                            <button class="btn-update">Actions ▾</button>
-                        </a>
-
-                        <div class="dropdown-content">
-
-                            <a th:href="@{'/cart/updatePriceForm/' + ${item.id}}">Update Price</a>
-                            <a th:href="@{'/cart/updateNameForm/' + ${item.id}}">Update Name</a>
-                            <a th:href="@{'/cart/updateQuantityForm/' + ${item.id}}">Update Qty</a>
-                        </div>
+                <div class="product-info">
+                    <div class="product-title" th:text="${item.name}">Product Name</div>
+                    <div class="product-price">
+                        ₹ <span th:text="${#numbers.formatDecimal(item.price, 0, 'COMMA', 2, 'POINT')}">0.00</span>
                     </div>
-                </td>
-            </tr>
-        </table>
+                    <div
+                        th:class="${item.quantity == 0} ? 'qty-low' : (${item.quantity < 5} ? 'qty-low' : 'qty-normal')">
+                        <span class="product-qty"
+                            th:text="${item.quantity == 0} ? 'Out of Stock' : (${item.quantity < 5} ? 'Only ' + ${item.quantity} + ' Left!' : 'In Stock')">Stock:
+                            0</span>
+                    </div>
+                </div>
+
+                <div class="product-actions" style="margin-top: 15px;">
+                    <!-- User Action: Add to Cart -->
+                    <form th:if="${item.quantity > 0}" th:action="@{/cart/addToCart}" method="post"
+                        style="display: flex; gap: 5px; align-items: center;">
+                        <input type="hidden" name="id" th:value="${item.id}" />
+                        <input type="number" name="quantity" value="1" min="1" max="100" class="modal-input"
+                            style="width: 60px; margin: 0; padding: 8px; font-size: 14px; text-align: center;"
+                            required />
+                        <button type="submit" class="btn-card-action btn-add-cart" style="flex: 1; padding: 8px 5px;">
+                            Add to Cart 🛒
+                        </button>
+                    </form>
+                    <button th:if="${item.quantity == 0}" class="btn-card-action btn-add-cart"
+                        style="background-color: #ccc; cursor: not-allowed; width: 100%;" disabled>
+                        Out of Stock 🚫
+                    </button>
+                </div>
+            </div>
+        </div>
 
         <!-- Pagination Controls -->
-        <div th:if="${totalPages > 1}" style="text-align: center; margin-bottom: 20px;">
+        <div th:if="${totalPages > 1}" style="text-align: center; margin: 40px 0 20px 0;">
             <div style="display: inline-block;">
                 <a th:if="${currentPage > 1}" th:href="@{'/cart/inventory?pageNo=' + ${currentPage - 1}}">
                     <button class="btn-primary" style="padding: 8px 15px;">&laquo; Previous</button>
                 </a>
 
-                <span style="font-weight: bold; margin: 0 10px; font-size: 16px;">
-                    Page <span th:text="${currentPage}"></span> of <span th:text="${totalPages}"></span>
+                <span style="font-weight: bold; margin: 0 15px; font-size: 16px; color: #7f8c8d;">
+                    Page <span th:text="${currentPage}" style="color: #2c3e50;"></span> of <span
+                        th:text="${totalPages}"></span>
                 </span>
 
                 <a th:if="${currentPage < totalPages}" th:href="@{'/cart/inventory?pageNo=' + ${currentPage + 1}}">
                     <button class="btn-primary" style="padding: 8px 15px;">Next &raquo;</button>
                 </a>
             </div>
-            <div style="margin-top: 10px; color: #777;">
-                Total Items: [[${totalItems}]]
+            <div style="margin-top: 10px; color: #aaa; font-size: 13px;">
+                Total Products: [[${totalItems}]]
             </div>
         </div>
 
-        <div class="floating-action-buttons">
-            <a th:href="@{/cart/viewCart}">
-                <button class="btn-primary" style="margin-right: 0;">View Cart 🛍️</button>
-            </a>
-            <a th:href="@{/cart/bill}">
-                <button class="btn-primary">View Bill 🧾</button>
-            </a>
-        </div>
-
     </div>
 
-    <!-- Quantity Modal -->
-    <div id="quantityModal" class="modal">
-        <div class="modal-content">
-            <span class="close" onclick="closeQuantityModal()">&times;</span>
-            <h2>Select Quantity</h2>
-            <form th:action="@{/cart/addToCart}" method="post">
-                <input type="hidden" id="modalItemId" name="id" />
-                <input type="number" name="quantity" class="modal-input" value="1" min="1" required />
-                <br />
-                <button type="submit" class="modal-btn">Add to Cart</button>
-            </form>
-        </div>
+    <div class="floating-action-buttons" th:unless="${session.isLoggedIn}"
+        style="display: flex; gap: 15px; background: rgba(0,0,0,0.5); padding: 15px; border-radius: 40px; backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1);">
+        <a th:href="@{/cart/viewCart}" style="text-decoration: none;">
+            <button class="btn-primary"
+                style="margin-right: 0; border-radius: 30px; background: rgba(0, 242, 255, 0.1); border: 1px solid #00f2ff; box-shadow: 0 0 15px rgba(0, 242, 255, 0.3); transition: 0.3s; transform-style: preserve-3d; font-weight: bold; letter-spacing: 1px;">VIEW
+                CART 🛍️</button>
+        </a>
+        <a th:href="@{/cart/bill}" style="text-decoration: none;">
+            <button class="btn-primary"
+                style="border-radius: 30px; background: rgba(0, 242, 255, 0.1); border: 1px solid #00f2ff; box-shadow: 0 0 15px rgba(0, 242, 255, 0.3); transition: 0.3s; transform-style: preserve-3d; font-weight: bold; letter-spacing: 1px;">VIEW
+                BILL 🧾</button>
+        </a>
     </div>
-
 
     <!-- Error Modal -->
     <div id="errorModal" class="modal">
@@ -121,7 +212,7 @@
             <span class="close" onclick="closeSuccessModal()">&times;</span>
             <h2 style="color: #28a745;">Success! ✅</h2>
             <p id="successMessage" th:text="${success}" style="font-size: 18px; margin: 20px 0;"></p>
-            <button class="modal-btn" onclick="closeSuccessModal()" style="background-color: #28a745;">OK</button>
+
         </div>
     </div>
 
@@ -152,10 +243,10 @@
         if (successMsg) {
             var sModal = document.getElementById('successModal');
             sModal.style.display = "block";
-            // Auto-close after 2 seconds
+            // Auto-close after 1 second
             setTimeout(function () {
                 sModal.style.display = "none";
-            }, 2000);
+            }, 1000);
         }
         /*]]>*/
 
@@ -184,23 +275,10 @@
             }
         }
 
-        function openQuantityModal(itemId) {
-            document.getElementById('modalItemId').value = itemId;
-            document.getElementById('quantityModal').style.display = "block";
-        }
-
-        function closeQuantityModal() {
-            document.getElementById('quantityModal').style.display = "none";
-        }
-
         // Close modal if user clicks outside of it
         window.onclick = function (event) {
-            var qModal = document.getElementById('quantityModal');
             var eModal = document.getElementById('errorModal');
             var dModal = document.getElementById('deleteModal');
-            if (event.target == qModal) {
-                qModal.style.display = "none";
-            }
             if (event.target == eModal) {
                 eModal.style.display = "none";
             }

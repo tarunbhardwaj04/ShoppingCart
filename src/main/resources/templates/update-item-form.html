@@ -6,35 +6,73 @@
     <link rel="stylesheet" th:href="@{/style.css?v=2}">
 </head>
 
-<body>
+<body style="display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0;">
 
-    <div class="container">
+    <div class="modal-content"
+        style="text-align: left; padding: 50px; animation: none; background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.1); box-shadow: 0 0 40px rgba(0,0,0,0.5); width: 100%; max-width: 500px;">
 
-        <h1>Update Item 📝</h1>
+        <div style="text-align: center; margin-bottom: 40px;">
+            <!-- Mini SVG Header -->
+            <svg width="280" height="50" viewBox="0 0 280 50" xmlns="http://www.w3.org/2000/svg">
+                <style>
+                    .header-text {
+                        font-family: 'Unbounded', sans-serif;
+                        font-size: 24px;
+                        font-weight: 700;
+                        text-transform: uppercase;
+                        fill: white;
+                        stroke: #00f2ff;
+                        stroke-width: 1px;
+                        text-shadow: 0 0 10px rgba(0, 242, 255, 0.5);
+                    }
+                </style>
+                <text x="50%" y="35" text-anchor="middle" class="header-text">UPDATE ITEM</text>
+            </svg>
+        </div>
 
         <form th:action="@{/cart/updateItem}" th:object="${item}" method="post">
 
             <input type="hidden" th:field="*{id}">
 
-            <div class="form-group">
-                <label for="itemName">Item Name:</label>
-                <input type="text" id="itemName" th:field="*{name}" required>
+            <div style="margin-bottom: 25px;">
+                <label for="itemName"
+                    style="display: block; color: rgba(255,255,255,0.8); font-family: 'Unbounded'; font-size: 14px; letter-spacing: 1px; margin-bottom: 10px;">ITEM
+                    NAME</label>
+                <input type="text" id="itemName" th:field="*{name}" class="modal-input" required
+                    style="width: 100%; padding: 15px; font-size: 16px;">
             </div>
 
-            <div class="form-group">
-                <label for="itemPrice">Item Price (₹):</label>
-                <input type="number" step="0.01" id="itemPrice" th:field="*{price}" required>
+            <div style="margin-bottom: 25px;">
+                <label for="itemPrice"
+                    style="display: block; color: rgba(255,255,255,0.8); font-family: 'Unbounded'; font-size: 14px; letter-spacing: 1px; margin-bottom: 10px;">PRICE
+                    (₹)</label>
+                <input type="number" step="0.01" id="itemPrice" th:field="*{price}" class="modal-input" required
+                    style="width: 100%; padding: 15px; font-size: 16px;">
             </div>
 
-            <div class="form-group">
-                <label for="itemQuantity">Quantity:</label>
-                <input type="number" id="itemQuantity" th:field="*{quantity}" required>
+            <div style="margin-bottom: 25px;">
+                <label for="itemQuantity"
+                    style="display: block; color: rgba(255,255,255,0.8); font-family: 'Unbounded'; font-size: 14px; letter-spacing: 1px; margin-bottom: 10px;">QUANTITY</label>
+                <input type="number" id="itemQuantity" th:field="*{quantity}" class="modal-input" required
+                    style="width: 100%; padding: 15px; font-size: 16px;">
             </div>
 
-            <input type="submit" value="Update Item">
+            <div style="margin-bottom: 35px;">
+                <label for="imageUrl"
+                    style="display: block; color: rgba(255,255,255,0.8); font-family: 'Unbounded'; font-size: 14px; letter-spacing: 1px; margin-bottom: 10px;">IMAGE
+                    URL</label>
+                <input type="text" id="imageUrl" th:field="*{imageUrl}" class="modal-input" placeholder="https://..."
+                    style="width: 100%; padding: 15px; font-size: 16px;">
+            </div>
 
-            <a th:href="@{/cart/inventory}">
-                <button type="button" class="btn-secondary">Cancel</button>
+            <button type="submit" class="btn-primary"
+                style="width: 100%; padding: 18px; font-size: 16px; font-weight: bold; letter-spacing: 2px;">UPDATE
+                ITEM</button>
+
+            <a th:href="@{/cart/inventory}"
+                style="display: block; text-align: center; margin-top: 20px; text-decoration: none; color: rgba(255,255,255,0.4); font-size: 12px; font-family: 'Inter'; transition: 0.3s;"
+                onmouseover="this.style.color='white'" onmouseout="this.style.color='rgba(255,255,255,0.4)'">
+                CANCEL
             </a>
         </form>
 
